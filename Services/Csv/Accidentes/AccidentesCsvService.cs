@@ -6,12 +6,28 @@ namespace AccidentesMadrid.Services.Csv.Accidentes;
 
 public class AccidentesCsvService(IAccidentesReader accidentesStorage, AccidentesRepository repository) : IAccidentesCsvService
 {
-    public async Task Salvar(IEnumerable<string> paths)
+    public async Task Salvar(IEnumerable<string> paths, int batchSize = 1000)
     {
-        var tasks = paths.Select(path => accidentesStorage.Cargar(path).ToListAsync().AsTask());
-        List<Accidente>[] resultados = await Task.WhenAll(tasks);
-        var list = resultados.SelectMany(x => x);
-        repository.AddRange(list);
+        var batch = new List<Accidente>(batchSize);
+
+        foreach (var path in paths)
+        {
+            await foreach (var accidente in accidentesStorage.Cargar(path))
+            {
+                batch.Add(accidente);
+
+                if (batch.Count >= batchSize)
+                {
+                    repository.AddRange(batch);
+                    batch.Clear();
+                }
+            }
+        }
+        
+        if (batch.Count > 0)
+        {
+            repository.AddRange(batch);
+        }
     }
 
     public IEnumerable<Accidente> Cargar()
