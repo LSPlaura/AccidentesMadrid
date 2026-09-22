@@ -7,13 +7,13 @@ namespace AccidentesMadrid.Services.File.Csv.Accidentes;
 
 public class AccidentesFileService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, AccidentesRepository repository) : IAccidentesFileService
 {
-    public async Task Salvar(IEnumerable<string> paths, int batchSize = 1000)
+    public async Task Import(IEnumerable<string> paths, int batchSize = 1000)
     {
         var batch = new List<Accidente>(batchSize);
 
         foreach (var path in paths)
         {
-            await foreach (var accidente in accidentesReader.Cargar(path))
+            await foreach (var accidente in accidentesReader.Load(path))
             {
                 batch.Add(accidente);
 
@@ -37,7 +37,7 @@ public class AccidentesFileService(IAccidentesReader accidentesReader, IAccident
         await accidentesWriter.Load(list, path);
     }
 
-    public IEnumerable<Accidente> Cargar()
+    public IEnumerable<Accidente> GetAll()
     {
         return repository.GetAll();
     }

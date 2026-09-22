@@ -8,7 +8,7 @@ namespace AccidentesMadrid.Storages.Csv.Reader.Accidentes;
 
 public class AccidentesReader : IAccidentesReader
 {
-    public IAsyncEnumerable<Accidente> Cargar(string path)
+    public IAsyncEnumerable<Accidente> Load(string path)
     {
         if (!File.Exists(path))
         {

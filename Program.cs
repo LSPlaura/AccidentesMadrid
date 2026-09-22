@@ -9,8 +9,8 @@ class Program
     static async Task Main(string[] args)
     {
         // var csvService = new AccidentesFileService(new AccidentesReader(), new AccidentesRepository());
-        // await csvService.Salvar([Config.Config.Csv2024Path, Config.Config.Csv2025Path, Config.Config.Csv2026Path]);
-        // var lista = csvService.Cargar();
+        // await csvService.Import([Config.Config.Csv2024Path, Config.Config.Csv2025Path, Config.Config.Csv2026Path]);
+        // var lista = csvService.Load();
         // int numTotal = lista.Count();
         // Console.WriteLine(numTotal);
     }

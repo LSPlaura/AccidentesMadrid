@@ -10,5 +10,5 @@ public interface IReader<T>
     /// </summary>
     /// <param name="path">La ruta al fichero</param>
     /// <returns>Coleccion de los datos mapeados o el error correspondiente</returns>
-    IAsyncEnumerable<T> Cargar(string path);
+    IAsyncEnumerable<T> Load(string path);
 }
