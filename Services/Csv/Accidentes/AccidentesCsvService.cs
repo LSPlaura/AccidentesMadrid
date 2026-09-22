@@ -1,10 +1,12 @@
 using AccidentesMadrid.Models;
 using AccidentesMadrid.Repositories.Accidentes;
 using AccidentesMadrid.Storages.Accidentes;
+using AccidentesMadrid.Storages.Accidentes.Reader;
+using AccidentesMadrid.Storages.Accidentes.Writer;
 
 namespace AccidentesMadrid.Services.Csv.Accidentes;
 
-public class AccidentesCsvService(IAccidentesReader accidentesStorage, AccidentesRepository repository) : IAccidentesCsvService
+public class AccidentesCsvService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, AccidentesRepository repository) : IAccidentesCsvService
 {
     public async Task Salvar(IEnumerable<string> paths, int batchSize = 1000)
     {
@@ -12,7 +14,7 @@ public class AccidentesCsvService(IAccidentesReader accidentesStorage, Accidente
 
         foreach (var path in paths)
         {
-            await foreach (var accidente in accidentesStorage.Cargar(path))
+            await foreach (var accidente in accidentesReader.Cargar(path))
             {
                 batch.Add(accidente);
 
@@ -28,6 +30,12 @@ public class AccidentesCsvService(IAccidentesReader accidentesStorage, Accidente
         {
             repository.AddRange(batch);
         }
+    }
+
+    public async Task Export(string path)
+    {
+        var list =  repository.GetAll();
+        await accidentesWriter.Load(list, path);
     }
 
     public IEnumerable<Accidente> Cargar()
