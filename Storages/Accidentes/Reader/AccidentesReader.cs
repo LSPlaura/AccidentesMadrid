@@ -3,7 +3,7 @@ using AccidentesMadrid.Dtos;
 using AccidentesMadrid.Mappers;
 using AccidentesMadrid.Models;
 
-namespace AccidentesMadrid.Storages.Accidentes;
+namespace AccidentesMadrid.Storages.Accidentes.Reader;
 
 public class AccidentesReader : IAccidentesReader
 {
