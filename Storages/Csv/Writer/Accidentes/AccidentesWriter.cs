@@ -1,8 +1,9 @@
 using System.Text;
 using AccidentesMadrid.Mappers;
 using AccidentesMadrid.Models;
+using AccidentesMadrid.Storages.Accidentes.Writer;
 
-namespace AccidentesMadrid.Storages.Accidentes.Writer;
+namespace AccidentesMadrid.Storages.Csv.Writer.Accidentes;
 
 public class AccidentesWriter : IAccidentesWriter
 {

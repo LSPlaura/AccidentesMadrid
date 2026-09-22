@@ -1,12 +1,11 @@
 using AccidentesMadrid.Models;
 using AccidentesMadrid.Repositories.Accidentes;
-using AccidentesMadrid.Storages.Accidentes;
 using AccidentesMadrid.Storages.Accidentes.Reader;
 using AccidentesMadrid.Storages.Accidentes.Writer;
 
-namespace AccidentesMadrid.Services.Csv.Accidentes;
+namespace AccidentesMadrid.Services.File.Csv.Accidentes;
 
-public class AccidentesCsvService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, AccidentesRepository repository) : IAccidentesCsvService
+public class AccidentesFileService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, AccidentesRepository repository) : IAccidentesFileService
 {
     public async Task Salvar(IEnumerable<string> paths, int batchSize = 1000)
     {

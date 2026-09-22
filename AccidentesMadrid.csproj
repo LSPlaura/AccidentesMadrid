@@ -19,4 +19,10 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Services\Analyzers\" />
+      <Folder Include="Services\File\Csv\" />
+      <Folder Include="Storages\Csv\" />
+    </ItemGroup>
+
 </Project>

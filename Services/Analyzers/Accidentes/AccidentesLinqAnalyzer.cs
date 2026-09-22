@@ -1,6 +1,6 @@
 using AccidentesMadrid.Models;
 
-namespace AccidentesMadrid.Services.Accidentes;
+namespace AccidentesMadrid.Services.Analyzers.Accidentes;
 
 public class AccidentesLinqAnalyzer()
 {

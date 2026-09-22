@@ -1,6 +1,6 @@
-namespace AccidentesMadrid.Services.Csv.Common;
+namespace AccidentesMadrid.Services.File.Common;
 
-public interface ICsvService<T>
+public interface IFileService<T>
 {
     Task Salvar(IEnumerable<string> paths, int batchSize = 1000);
     IEnumerable<T> Cargar();
