@@ -1,4 +1,4 @@
-namespace AccidentesMadrid.Storages.Common;
+namespace AccidentesMadrid.Storages.Files.Common;
 
 /// <summary>
 /// Permite exportar los datos usando un almacenamiento persistente

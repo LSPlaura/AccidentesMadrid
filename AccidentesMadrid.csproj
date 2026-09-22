@@ -22,7 +22,7 @@
     <ItemGroup>
       <Folder Include="Services\Analyzers\" />
       <Folder Include="Services\File\Csv\" />
-      <Folder Include="Storages\Csv\" />
+      <Folder Include="Storages\Files\" />
     </ItemGroup>
 
 </Project>

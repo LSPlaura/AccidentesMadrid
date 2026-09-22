@@ -2,9 +2,8 @@ using System.Text;
 using AccidentesMadrid.Dtos;
 using AccidentesMadrid.Mappers;
 using AccidentesMadrid.Models;
-using AccidentesMadrid.Storages.Accidentes.Reader;
 
-namespace AccidentesMadrid.Storages.Csv.Reader.Accidentes;
+namespace AccidentesMadrid.Storages.Files.Csv.Reader.Accidentes;
 
 public class AccidentesReader : IAccidentesReader
 {

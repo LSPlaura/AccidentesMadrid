@@ -1,4 +1,4 @@
-namespace AccidentesMadrid.Storages.Common;
+namespace AccidentesMadrid.Storages.Files.Common;
 
 /// <summary>
 /// Permite importar los datos usando un almacenamiento persistente

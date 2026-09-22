@@ -1,7 +1,7 @@
 using AccidentesMadrid.Models;
-using AccidentesMadrid.Storages.Common;
+using AccidentesMadrid.Storages.Files.Common;
 
-namespace AccidentesMadrid.Storages.Accidentes.Reader;
+namespace AccidentesMadrid.Storages.Files.Csv.Reader.Accidentes;
 
 //patrón storage de csv simplificado para que solo importe
 public interface IAccidentesReader : IReader<Accidente>

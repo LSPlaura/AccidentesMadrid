@@ -1,7 +1,7 @@
 using AccidentesMadrid.Models;
 using AccidentesMadrid.Repositories.Accidentes;
-using AccidentesMadrid.Storages.Accidentes.Reader;
-using AccidentesMadrid.Storages.Accidentes.Writer;
+using AccidentesMadrid.Storages.Files.Csv.Reader.Accidentes;
+using AccidentesMadrid.Storages.Files.Csv.Writer.Accidentes;
 
 namespace AccidentesMadrid.Services.File.Csv.Accidentes;
 

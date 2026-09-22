@@ -1,6 +1,5 @@
 ﻿using AccidentesMadrid.Repositories.Accidentes;
 using AccidentesMadrid.Storages.Accidentes;
-using AccidentesMadrid.Storages.Accidentes.Reader;
 
 namespace AccidentesMadrid;
 
