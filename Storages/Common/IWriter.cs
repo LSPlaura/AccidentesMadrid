@@ -11,5 +11,5 @@ public interface IWriter<T>
     /// <param name="items">Coleccion de datos a guardar</param>
     /// <param name="path">Ruta en la que se va a guardar el archivo</param>
     /// <returns>True si se ha podido salvar los datos</returns>
-    bool Load(IEnumerable<T> items, string path);
+    Task<bool> Load(IEnumerable<T> items, string path);
 }
