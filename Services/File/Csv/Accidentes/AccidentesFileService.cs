@@ -5,7 +5,7 @@ using AccidentesMadrid.Storages.Accidentes.Writer;
 
 namespace AccidentesMadrid.Services.File.Csv.Accidentes;
 
-public class AccidentesFileService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, AccidentesRepository repository) : IAccidentesFileService
+public class AccidentesFileService(IAccidentesReader accidentesReader, IAccidentesWriter accidentesWriter, IAccidentesRepository repository) : IAccidentesFileService
 {
     public async Task Import(IEnumerable<string> paths, int batchSize = 1000)
     {
