@@ -11,7 +11,27 @@ public class AccidentesWriter : IAccidentesWriter
         try
         {
             using var writer = new StreamWriter(path, false, Encoding.UTF8);
-            await writer.WriteLineAsync("num_expediente;fecha;hora;localizacion;numero;cod_distrito;distrito;tipo_accidente;estado_meteorológico;tipo_vehiculo;tipo_persona;rango_edad;sexo;cod_lesividad;lesividad;coordenada_x_utm;coordenada_y_utm;positiva_alcohol;positiva_droga");
+            await writer.WriteLineAsync(string.Join(";", 
+                Config.Config.NumExpediente,
+                Config.Config.Fecha,
+                Config.Config.Hora,
+                Config.Config.Localizacion,
+                Config.Config.Numero,
+                Config.Config.CodDistrito,
+                Config.Config.Distrito,
+                Config.Config.TipoAccidente,
+                Config.Config.EstadoMeteorologico,
+                Config.Config.TipoVehiculo,
+                Config.Config.TipoPersona,
+                Config.Config.RangoEdad,
+                Config.Config.Sexo,
+                Config.Config.CodLesividad,
+                Config.Config.Lesividad,
+                Config.Config.CoordenadaXUtm,
+                Config.Config.CoordenadaYUtm,
+                Config.Config.PositivaAlcohol,
+                Config.Config.PositivaDroga
+            ));
             
             foreach (var accidente in items)
             {
