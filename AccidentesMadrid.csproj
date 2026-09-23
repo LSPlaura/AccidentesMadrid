@@ -25,4 +25,8 @@
       <Folder Include="Storages\Files\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Data.Analysis" Version="0.23.0" />
+    </ItemGroup>
+
 </Project>
