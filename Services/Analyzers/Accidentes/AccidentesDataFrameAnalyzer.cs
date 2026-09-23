@@ -16,7 +16,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
         //toma la columna solo de numeros de expediente
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
         
         //itera sobre la columna
         for (long i = 0; i < accidentes.Rows.Count; i++)
@@ -39,9 +39,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         //Filtra por distrito, cuenta los accidentes en cada distrito (el dataframe ahora consta de dos columnas (distrito y distrito_Count).
         //Se ordenada descendentemente para obtener los distritos con más accidentes y se toman los 5 primeros
         DataFrame top5 = accidentesUnicos
-            .GroupBy("distrito")
+            .GroupBy(Config.Config.Distrito)
             .Count()
-            .OrderByDescending("distrito_Count")
+            .OrderByDescending(Config.Config.Distrito +"_Count")
             .Head(5);
         
         //se mapea a tupla, luego de haber realizado las operaciones pesadas mediante el dataframe esta operacion no le resta eficiencia
@@ -58,7 +58,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -71,9 +71,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame resultado = accidentesUnicos
-            .GroupBy("tipo_accidente")
+            .GroupBy(Config.Config.TipoAccidente)
             .Count()
-            .OrderByDescending("tipo_accidente_Count");
+            .OrderByDescending(Config.Config.TipoAccidente + "_Count");
 
         return resultado.Rows.Select(fila => (
             TipoAccidente: Enum.TryParse<TipoAccidente>(fila[0]?.ToString(), true, out var tipo) ? tipo : TipoAccidente.OtrasCausas,
@@ -85,7 +85,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -98,9 +98,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame resultado = accidentesUnicos
-            .GroupBy("estado_meteorologico")
+            .GroupBy(Config.Config.EstadoMeteorologico)
             .Count()
-            .OrderByDescending("estado_meteorologico_Count");
+            .OrderByDescending(Config.Config.EstadoMeteorologico + "_Count");
 
         return resultado.Rows.Select(fila => (
             EstadoMetereologico: fila[0]?.ToString() ?? "Desconocido",
@@ -118,9 +118,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         //Se reservan en registros ultrarrápidos del procesador y se destruyen instantáneamente al salir del método sin ensuciar la RAM.
         //Además tampoco activa el garbage collector
         DataFrame resultado = accidentes
-            .GroupBy("sexo")
+            .GroupBy(Config.Config.Sexo)
             .Count()
-            .OrderByDescending("sexo_Count");
+            .OrderByDescending(Config.Config.Sexo + "_Count");
 
         return resultado.Rows.Select(fila => (
             Sexo: Enum.TryParse<Sexo>(fila[0]?.ToString(), true, out var sexo) ? sexo : Sexo.Desconocido,
@@ -132,9 +132,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public IEnumerable<(string RangoEdad, int Total)> AccidentesPorRangoEdad(DataFrame accidentes)
     {
         DataFrame resultado = accidentes
-            .GroupBy("rango_edad")
+            .GroupBy(Config.Config.RangoEdad)
             .Count()
-            .OrderByDescending("rango_edad_Count");
+            .OrderByDescending(Config.Config.RangoEdad + "_Count");
 
         return resultado.Rows.Select(fila => (
             RangoEdad: fila[0]?.ToString() ?? "Desconocido",
@@ -144,7 +144,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public int PositivosAlcohol(DataFrame accidentes)
     {
         DataFrame positivos = accidentes.Filter(
-            accidentes["positiva_alcohol"].ElementwiseEquals("true")
+            accidentes[Config.Config.PositivaAlcohol].ElementwiseEquals("true")
         );
         return Convert.ToInt32(positivos.Rows.Count);
     }
@@ -152,7 +152,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public int PositivosDrogas(DataFrame accidentes)
     {
         DataFrame positivos = accidentes.Filter(
-            accidentes["positiva_droga"].ElementwiseEquals("true")
+            accidentes[Config.Config.PositivaDroga].ElementwiseEquals("true")
         );
         return Convert.ToInt32(positivos.Rows.Count);
     }
@@ -161,7 +161,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -175,7 +175,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
 
         //El DataFrame agrupa primero por fecha (se reduce de N a ~365 filas)
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         //Se agrupa por DayOfWeek mediante linq (operación O(365) ultra rápida)
@@ -196,7 +196,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -207,13 +207,11 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         }
 
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
-
-        //El DataFrame agrupa primero por fecha (se reduce de N a ~365 filas)
+        
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
-
-        //Se agrupa por DayOfWeek mediante linq (operación O(365) ultra rápida)
+        
         return porFecha.Rows
             .Select(fila => (
                 Mes: DateTime.TryParse(fila[0]?.ToString(), out var f) ? f.Month : DateTime.MinValue.Month,
@@ -221,7 +219,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
             ))
             .GroupBy(x => x.Mes)
             .Select(g => (
-                Dia: g.Key,
+                Mes: g.Key,
                 Total: g.Sum(x => x.Cantidad)
             ))
             .OrderByDescending(x => x.Total);
@@ -231,7 +229,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -244,9 +242,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame top1 = accidentesUnicos
-            .GroupBy("hora")
+            .GroupBy(Config.Config.Hora)
             .Count()
-            .OrderByDescending("hora_Count")
+            .OrderByDescending(Config.Config.Hora + "_Count")
             .Head(1);
 
         if (top1.Rows.Count == 0) return null;
@@ -268,9 +266,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public (TipoAccidente TipoAccidente, int Total)? LesionesMasFrecuentes(DataFrame accidentes)
     {
         DataFrame top1 = accidentes
-            .GroupBy("lesividad")
+            .GroupBy(Config.Config.Lesividad)
             .Count()
-            .OrderByDescending("lesividad_Count")
+            .OrderByDescending(Config.Config.Lesividad+ "_Count")
             .Head(1);
 
         if (top1.Rows.Count == 0) return null;
@@ -286,9 +284,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public (string TipoVehiculo, int Total)? VehiculoMasImplicado(DataFrame accidentes)
     {
         DataFrame top1 = accidentes
-            .GroupBy("tipo_vehiculo")
+            .GroupBy(Config.Config.TipoVehiculo)
             .Count()
-            .OrderByDescending("tipo_vehiculo_Count")
+            .OrderByDescending(Config.Config.TipoVehiculo + "_Count")
             .Head(1);
 
         if (top1.Rows.Count == 0) return null;
@@ -306,8 +304,8 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         var vistos = new HashSet<string>();
         var expedientesPeatones = new List<string>();
 
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
-        DataFrameColumn colTipoPersona = accidentes["tipo_persona"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
+        DataFrameColumn colTipoPersona = accidentes[Config.Config.TipoPersona];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -325,13 +323,13 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public IEnumerable<(Sexo Sexo, int Total)> ProporcionHombreMujer(DataFrame accidentes)
     {
         DataFrame conductores = accidentes.Filter(
-            accidentes["tipo_persona"].ElementwiseEquals("Conductor")
+            accidentes[Config.Config.TipoPersona].ElementwiseEquals("Conductor")
         );
         
         DataFrame resultado = conductores
-            .GroupBy("sexo")
+            .GroupBy(Config.Config.Sexo)
             .Count()
-            .OrderByDescending("sexo_Count");
+            .OrderByDescending(Config.Config.Sexo + "_Count");
         
         return resultado.Rows.Select(fila => (
             Sexo: Enum.TryParse<Sexo>(fila[0]?.ToString(), true, out var sexo) ? sexo : Sexo.Desconocido,
@@ -342,13 +340,13 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public IEnumerable<(string Distrito, int Total)> DistritosConMasPeatones(DataFrame accidentes)
     {
         DataFrame peatones = accidentes.Filter(
-            accidentes["tipo_persona"].ElementwiseEquals("Peatón")
+            accidentes[Config.Config.TipoPersona].ElementwiseEquals("Peatón")
         );
 
         DataFrame resultado = peatones
-            .GroupBy("distrito")
+            .GroupBy(Config.Config.Distrito)
             .Count()
-            .OrderByDescending("distrito_Count");
+            .OrderByDescending(Config.Config.Distrito + "_Count");
         
         return resultado.Rows.Select(fila => (
             Distrito: fila[0]?.ToString() ?? "Desconocido",
@@ -360,7 +358,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -373,7 +371,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
         
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
         
         return porFecha.Rows
@@ -396,7 +394,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -410,7 +408,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
 
         // Agrupamos los accidentes únicos por fecha y contamos cuántos ocurrieron cada día
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         if (porFecha.Rows.Count == 0) return 0.0;
@@ -426,9 +424,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         //al realizar la operacion mediante un for la complejidad algoritma es o(n) lo que resulta más optimo que crear sub dataframes intermedios en memoria
         var vistos = new HashSet<string>();
     
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
-        DataFrameColumn colAlcohol = accidentes["positiva_alcohol"];
-        DataFrameColumn colDroga = accidentes["positiva_droga"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
+        DataFrameColumn colAlcohol = accidentes[Config.Config.PositivaAlcohol];
+        DataFrameColumn colDroga = accidentes[Config.Config.PositivaDroga];
 
         long accidentesConDoblePositivo = 0;
 
@@ -457,13 +455,13 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public IEnumerable<(string RangoEdad, int Total)> RangosEdadPeatonesVulnerables(DataFrame accidentes)
     {
         DataFrame peatones = accidentes.Filter(
-            accidentes["tipo_persona"].ElementwiseEquals("Peatón")
+            accidentes[Config.Config.TipoPersona].ElementwiseEquals("Peatón")
         );
         
         DataFrame resultado = peatones
-            .GroupBy("rango_edad")
+            .GroupBy(Config.Config.RangoEdad)
             .Count()
-            .OrderByDescending("rango_edad_Count")
+            .OrderByDescending(Config.Config.RangoEdad + "_Count")
             .Head(3);
         
         return resultado.Rows.Select(fila => (
@@ -477,8 +475,8 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
 
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
-        DataFrameColumn colAlcohol = accidentes["positiva_alcohol"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
+        DataFrameColumn colAlcohol = accidentes[Config.Config.PositivaAlcohol];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -497,9 +495,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame resultado = accidentesUnicos
-            .GroupBy("distrito")
+            .GroupBy(Config.Config.Distrito)
             .Count()
-            .OrderByDescending("distrito_Count")
+            .OrderByDescending(Config.Config.Distrito + "_Count")
             .Head(5);
 
         return resultado.Rows.Select(fila => (
@@ -512,7 +510,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -523,11 +521,11 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         }
 
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
-
+        
         DataFrame resultado = accidentesUnicos
-            .GroupBy("cod_distrito")
+            .GroupBy(Config.Config.CodDistrito)
             .Count()
-            .OrderBy("cod_distrito");
+            .OrderBy(Config.Config.CodDistrito);
 
         return resultado.Rows.Select(fila => (
             CodigoDistrito: int.TryParse(fila[0]?.ToString(), out var cod) ? cod : 0,
@@ -539,7 +537,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -552,7 +550,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         return porFecha.Rows
@@ -569,7 +567,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -582,7 +580,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         return porFecha.Rows
@@ -601,9 +599,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         var vistos = new HashSet<string>();
         var conteos = new Dictionary<(int Anio, string Distrito), int>();
 
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
-        DataFrameColumn colFecha = accidentes["fecha"];
-        DataFrameColumn colDistrito = accidentes["distrito"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
+        DataFrameColumn colFecha = accidentes[Config.Config.Fecha];
+        DataFrameColumn colDistrito = accidentes[Config.Config.Distrito];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -628,9 +626,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
 
     public IEnumerable<(int Anio, int TotalPositivos)> TendenciaAlcoholPorAnio(DataFrame accidentes)
     {
-        DataFrameColumn colTipo = accidentes["tipo_persona"];
-        DataFrameColumn colAlcohol = accidentes["positiva_alcohol"];
-        DataFrameColumn colFecha = accidentes["fecha"];
+        DataFrameColumn colTipo = accidentes[Config.Config.TipoPersona];
+        DataFrameColumn colAlcohol = accidentes[Config.Config.PositivaAlcohol];
+        DataFrameColumn colFecha = accidentes[Config.Config.Fecha];
 
         var conteosPorAnio = new Dictionary<int, int>();
 
@@ -655,7 +653,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     {
         var vistos = new HashSet<string>();
         var indicesUnicos = new List<long>();
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -668,7 +666,7 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         DataFrame accidentesUnicos = accidentes[new PrimitiveDataFrameColumn<long>("indices", indicesUnicos)];
 
         DataFrame porFecha = accidentesUnicos
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         return porFecha.Rows
@@ -690,9 +688,9 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         var vistos = new HashSet<string>();
         var conteos = new Dictionary<(int Anio, int Hora), int>();
 
-        DataFrameColumn colExpediente = accidentes["num_expediente"];
-        DataFrameColumn colFecha = accidentes["fecha"];
-        DataFrameColumn colHora = accidentes["hora"];
+        DataFrameColumn colExpediente = accidentes[Config.Config.NumExpediente];
+        DataFrameColumn colFecha = accidentes[Config.Config.Fecha];
+        DataFrameColumn colHora = accidentes[Config.Config.Hora];
 
         for (long i = 0; i < accidentes.Rows.Count; i++)
         {
@@ -729,8 +727,8 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
         //En un dataset de 300.000 filas, realizas 300.000 búsquedas por clave de texto y miles de asignaciones temporales en memoria RAM.
         //Al extraer la columna solo busca una vez en su diccionarion antes de entrar al bucle.
         //una vez en el bucle realiza un acceso indexado directo por posición (Dirección = Inicio + (i * tamaño)) a la memoria contigua de la columna, con complejidad O(1) (tiempo constante)
-        DataFrameColumn colFecha = accidentes["fecha"];
-        DataFrameColumn colLesividad = accidentes["lesividad"];
+        DataFrameColumn colFecha = accidentes[Config.Config.Fecha];
+        DataFrameColumn colLesividad = accidentes[Config.Config.Lesividad];
 
         //Se itara el dateframe original, como todos tienen el mismo numero de filas no habrá incongruencias entre los datos (tomar uno incorrecto)
         for (long i = 0; i < accidentes.Rows.Count; i++)
@@ -757,11 +755,11 @@ public class AccidentesDataFrameAnalyzer : IAccidentesAnalyzer.IAccidentesAnalyz
     public IEnumerable<(int Anio, int TotalPeatones)> EvolucionPeatonesPorAnio(DataFrame accidentes)
     {
         DataFrame peatones = accidentes.Filter(
-            accidentes["tipo_persona"].ElementwiseEquals("Peatón")
+            accidentes[Config.Config.TipoPersona].ElementwiseEquals("Peatón")
         );
 
         DataFrame porFecha = peatones
-            .GroupBy("fecha")
+            .GroupBy(Config.Config.Fecha)
             .Count();
 
         return porFecha.Rows
