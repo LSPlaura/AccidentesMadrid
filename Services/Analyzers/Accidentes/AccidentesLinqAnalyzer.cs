@@ -6,12 +6,12 @@ namespace AccidentesMadrid.Services.Analyzers.Accidentes;
 public class AccidentesLinqAnalyzer()
 {
     // Total de accidentes
-    int TotalAccidentes(IEnumerable<Accidente> accidentes)
+    public int TotalAccidentes(IEnumerable<Accidente> accidentes)
     {
         return accidentes.Count();
     }
     // Accidentes por distrito (top 5)
-    IEnumerable<(string Distrito, int Total)> AccidentesPorDistrito(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string Distrito, int Total)> AccidentesPorDistrito(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -21,7 +21,7 @@ public class AccidentesLinqAnalyzer()
             .Take(5);
     }
     // Accidentes por tipo
-    IEnumerable<(TipoAccidente TipoAccidente, int Total)> AccidentesPorTipo(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(TipoAccidente TipoAccidente, int Total)> AccidentesPorTipo(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -30,7 +30,7 @@ public class AccidentesLinqAnalyzer()
     }
     
     //Accidentes por estado meteorológico
-    IEnumerable<(string EstadoMetereologico, int Total)> AccidentesPorEstadoMetereologico(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string EstadoMetereologico, int Total)> AccidentesPorEstadoMetereologico(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -39,31 +39,31 @@ public class AccidentesLinqAnalyzer()
     }
     
     //personas que se ven implicadas en un accidente por sexo
-    IEnumerable<(Sexo Sexo, int Total)> AccidentesPorSexo(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(Sexo Sexo, int Total)> AccidentesPorSexo(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .GroupBy(a => a.Sexo)
             .Select(g => (Sexo: g.Key, Total: g.Count()));
     }
     // Accidentes por rango de edad //personas que se ven implicadas en un accidente por rango de edad
-    IEnumerable<(string RangoEdad, int Total)> AccidentesPorRangoEdad(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string RangoEdad, int Total)> AccidentesPorRangoEdad(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .GroupBy(a => a.RangoEdad)
             .Select(g => (RangoEdad: g.Key, Total: g.Count()));
     }
     // Positivos en alcohol
-    int PositivosAlcohol(IEnumerable<Accidente> accidentes)
+    public int PositivosAlcohol(IEnumerable<Accidente> accidentes)
     {
         return accidentes.Count(a => a.PositivoAlcohol);
     }
     // Positivos en drogas
-    int PositivosDrogas(IEnumerable<Accidente> accidentes)
+    public int PositivosDrogas(IEnumerable<Accidente> accidentes)
     {
         return accidentes.Count(a => a.PositivoDroga);
     }
     // Accidentes por día de la semana
-    IEnumerable<(DayOfWeek Dia, int Total)> AccidentesPorDiaDeLaSemana(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(DayOfWeek Dia, int Total)> AccidentesPorDiaDeLaSemana(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -72,7 +72,7 @@ public class AccidentesLinqAnalyzer()
             .OrderByDescending(x => x.Total);
     }
     // Accidentes por mes
-    IEnumerable<(int Mes, int Total)> AccidentesPorMes(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(int Mes, int Total)> AccidentesPorMes(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -81,7 +81,7 @@ public class AccidentesLinqAnalyzer()
             .OrderBy(m => m.Mes);
     }
     // Hora con más accidentes
-    (int Hora, int Total) HoraConMasAccidentes(IEnumerable<Accidente> accidentes)
+    public (int Hora, int Total) HoraConMasAccidentes(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .DistinctBy(a => a.NumExpediente)
@@ -90,7 +90,7 @@ public class AccidentesLinqAnalyzer()
             .MaxBy(a => a.Total);
     }
     // Lesiones más frecuentes
-    (TipoAccidente TipoAccidente, int Total) LesionesMasFrecuentes(IEnumerable<Accidente> accidentes)
+    public (TipoAccidente TipoAccidente, int Total) LesionesMasFrecuentes(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .GroupBy(a => a.TipoAccidente)
@@ -98,7 +98,7 @@ public class AccidentesLinqAnalyzer()
             .MaxBy(a => a.Total);
     }
     // Tipo de vehículo más implicado
-    (string TipoVehiculo, int Total) VehiculoMasImplicado(IEnumerable<Accidente> accidentes)
+    public (string TipoVehiculo, int Total) VehiculoMasImplicado(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .GroupBy(a => a.TipoVehiculo)
@@ -106,14 +106,14 @@ public class AccidentesLinqAnalyzer()
             .MaxBy(a => a.Total);
     }
     // Accidentes con peatones
-    IEnumerable<string> AccidentesPeatones(IEnumerable<Accidente> accidentes)
+    public IEnumerable<string> AccidentesPeatones(IEnumerable<Accidente> accidentes)
     {
         return accidentes
         .Where(a => a.TipoPersona == TipoPersona.Peatón)
         .DistinctBy(a => a.NumExpediente).Select(a => a.NumExpediente);
     }
     // Proporción hombre/mujer
-    IEnumerable<(Sexo Sexo, int Total)> ProporcionHombreMujer(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(Sexo Sexo, int Total)> ProporcionHombreMujer(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .Where(a => a.TipoPersona == TipoPersona.Conductor)
@@ -121,7 +121,7 @@ public class AccidentesLinqAnalyzer()
             .Select(g => (Sexo: g.Key, Total: g.Count()));
     }
     // Distritos con más peatones
-    IEnumerable<(string Distrito, int Total)> DistritosConMasPeatones(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string Distrito, int Total)> DistritosConMasPeatones(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .Where(a => a.TipoPersona == TipoPersona.Peatón)
@@ -130,7 +130,7 @@ public class AccidentesLinqAnalyzer()
             .OrderByDescending(d => d.Total);
     }
     // Fin de semana vs entre semana
-    IEnumerable<(string TipoDia, int Total)> ComparacionDiasLaboralesVsFinde(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string TipoDia, int Total)> ComparacionDiasLaboralesVsFinde(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .GroupBy(a => a.Fecha.DayOfWeek == DayOfWeek.Saturday || a.Fecha.DayOfWeek == DayOfWeek.Sunday
@@ -139,7 +139,7 @@ public class AccidentesLinqAnalyzer()
             .Select(g => (TipoDia: g.Key, Total: g.Count()));
     }
     // Devuelve el promedio de accidentes por día (ej. 124.5 accidentes/día)
-    double MediaAccidentesPorDia(IEnumerable<Accidente> accidentes)
+    public double MediaAccidentesPorDia(IEnumerable<Accidente> accidentes)
     { 
         return accidentes
             .GroupBy(a => a.Fecha)
@@ -147,11 +147,11 @@ public class AccidentesLinqAnalyzer()
             .Average();
     }
     // Accidentes con alcohol + droga
-    double AccidentesDrogaYAlcohol(IEnumerable<Accidente> accidentes)
+    public double AccidentesDrogaYAlcohol(IEnumerable<Accidente> accidentes)
     {
         return accidentes.Count(a => a.PositivoAlcohol && a.PositivoDroga);
     }
-    IEnumerable<(string RangoEdad, int Total)> RangosEdadPeatonesVulnerables(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string RangoEdad, int Total)> RangosEdadPeatonesVulnerables(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .Where(a => a.TipoPersona == TipoPersona.Peatón)
@@ -161,7 +161,7 @@ public class AccidentesLinqAnalyzer()
     }
     
     //Distritos con más positivos en alcohol
-   public IEnumerable<(string Distrito, int Total)> DistritosConMasPositivosAlcohol(IEnumerable<Accidente> accidentes)
+    public IEnumerable<(string Distrito, int Total)> DistritosConMasPositivosAlcohol(IEnumerable<Accidente> accidentes)
     {
         return accidentes
             .Where(a => a.PositivoAlcohol)

@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.IO;
+using System.Text;
 using Microsoft.Data.Analysis;
 
 namespace AccidentesMadrid.Storages.DataFrames;
@@ -10,11 +13,18 @@ public class DataFrameReader
         {
             throw new FileNotFoundException($"Archivo no encontrado: {path}");
         }
+        
+        Type[] dataTypes = Enumerable.Repeat(typeof(string), 19).ToArray();
+
+        string csvContent = File.ReadAllText(path, Encoding.UTF8).Replace("\"", "");
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent));
 
         return DataFrame.LoadCsv(
-            filename: path,
+            csvStream: stream,
             separator: ';',
-            encoding: System.Text.Encoding.UTF8
+            header: true,
+            dataTypes: dataTypes,
+            cultureInfo: CultureInfo.InvariantCulture
         );
     }
 }

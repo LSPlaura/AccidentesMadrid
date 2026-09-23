@@ -8,6 +8,7 @@ public static class Config
     public static readonly string Csv2024Path = Path.Combine(AccidentesFolder, "2024-accidentes-trafico-detalle.csv");
     public static readonly string Csv2025Path = Path.Combine(AccidentesFolder, "2025-accidentes-trafico-detalle-csv.csv");
     public static readonly string Csv2026Path = Path.Combine(AccidentesFolder, "2026-accidentes-trafico-detalle-csv.csv");
+    public static readonly string CsvTodosPath = Path.Combine(AccidentesFolder, "Todos-accidentes-trafico-detalle-csv.csv");
     public static readonly string NumExpediente = "num_expediente";
     public static readonly string Fecha = "fecha";
     public static readonly string Hora = "hora";
