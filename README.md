@@ -435,6 +435,694 @@ En la ejecución actual esto no se cumple completamente, por lo que los tiempos 
 
 ---
 
+# Accidentes de tráfico en Madrid
+
+Aplicación de consola desarrollada en C# y .NET 10 para importar y analizar datos de accidentes de tráfico registrados en Madrid durante los años 2024, 2025 y 2026.
+
+El proyecto ejecuta un conjunto de 30 consultas analíticas utilizando dos enfoques diferentes:
+
+- **LINQ**, trabajando con objetos de dominio `Accidente`.
+- **DataFrame**, utilizando la librería `Microsoft.Data.Analysis`.
+
+El objetivo es comparar la estructura, los resultados y el rendimiento de ambas alternativas.
+
+> Los resultados documentados corresponden a una ejecución con 130.864 registros.
+
+---
+
+## Índice
+
+1. [Objetivos](#objetivos)
+2. [Tecnologías utilizadas](#tecnologías-utilizadas)
+3. [Estructura del proyecto](#estructura-del-proyecto)
+4. [Formato y ubicación de los datos](#formato-y-ubicación-de-los-datos)
+5. [Instrucciones de uso](#instrucciones-de-uso)
+6. [Ejecución con Docker](#ejecución-con-docker)
+7. [Funcionamiento de la aplicación](#funcionamiento-de-la-aplicación)
+8. [Justificación del diseño](#justificación-del-diseño)
+9. [Consultas implementadas](#consultas-implementadas)
+10. [Tiempos de ejecución](#tiempos-de-ejecución)
+11. [Análisis de resultados](#análisis-de-resultados)
+12. [Limitaciones detectadas](#limitaciones-detectadas)
+13. [Mejoras futuras](#mejoras-futuras)
+14. [Conclusiones](#conclusiones)
+
+---
+
+## Objetivos
+
+Los objetivos principales del proyecto son:
+
+- Importar datos desde varios ficheros CSV.
+- Transformar los valores de texto a un modelo de dominio tipado.
+- Almacenar los registros en memoria.
+- Ejecutar 30 consultas analíticas.
+- Comparar LINQ y `DataFrame`.
+- Medir los tiempos de ejecución.
+- Analizar las diferencias entre ambos enfoques.
+- Ejecutar la aplicación tanto localmente como dentro de un contenedor Docker.
+
+Las consultas estudian:
+
+- Distribución de accidentes por distrito.
+- Tipo de accidente.
+- Estado meteorológico.
+- Sexo y rango de edad.
+- Positivos en alcohol y drogas.
+- Días de la semana y meses.
+- Horas con más accidentes.
+- Accidentes con peatones.
+- Evolución anual y mensual.
+- Diferencias entre días laborables y fines de semana.
+- Vehículos más implicados.
+- Gravedad y lesividad.
+
+---
+
+## Tecnologías utilizadas
+
+- **Lenguaje:** C#
+- **Framework:** .NET 10
+- **Tipo de aplicación:** Aplicación de consola
+- **Librería de análisis:** `Microsoft.Data.Analysis`
+- **Versión:** 0.23.0
+- **Formato de datos:** CSV
+- **Codificación:** UTF-8
+- **Separador de columnas:** `;`
+- **Contenedores:** Docker
+
+La dependencia principal está declarada en `AccidentesMadrid.csproj`:
+
+```xml
+<PackageReference Include="Microsoft.Data.Analysis" Version="0.23.0" />
+```
+
+---
+
+## Estructura del proyecto
+
+```text
+Config/
+  Config.cs
+
+Dtos/
+  AccidenteDto.cs
+
+Mappers/
+  AccidenteMapper.cs
+
+Models/
+  Accidente.cs
+  Enums/
+    Gravedad.cs
+    Sexo.cs
+    TipoAccidente.cs
+    TipoPersona.cs
+
+Repositories/
+  Accidentes/
+    AccidentesRepository.cs
+    IAccidentesRepository.cs
+  Common/
+    IMemoryRepository.cs
+
+Services/
+  Analyzers/
+    Accidentes/
+      AccidentesDataFrameAnalyzer.cs
+      AccidentesLinqAnalyzer.cs
+      Common/
+        IAccidentesAnalyzer.cs
+  File/
+    Common/
+      IFileService.cs
+    Csv/
+      Accidentes/
+        AccidentesFileService.cs
+        IAccidentesFileService.cs
+
+Storages/
+  DataFrames/
+    DataFrameReader.cs
+    Common/
+      IDataFrameReader.cs
+  Files/
+    Common/
+      IReader.cs
+      IWriter.cs
+    Csv/
+      Reader/
+        Accidentes/
+          AccidentesReader.cs
+          IAccidentesReader.cs
+      Writer/
+        Accidentes/
+          AccidentesWriter.cs
+          IAccidentesWriter.cs
+
+AccidentesMadrid.csproj
+AccidentesMadrid.slnx
+Dockerfile
+.dockerignore
+.gitignore
+Program.cs
+README.md
+```
+
+### Modelos
+
+La carpeta `Models` contiene el modelo principal `Accidente` y los enumerados utilizados en el proyecto:
+
+- `Gravedad`
+- `Sexo`
+- `TipoAccidente`
+- `TipoPersona`
+
+El modelo `Accidente` utiliza tipos adecuados para cada campo:
+
+- `DateTime` para la fecha.
+- `TimeSpan` para la hora.
+- `int` para números y códigos.
+- `bool` para positivos de alcohol y drogas.
+- Enumerados para categorías controladas.
+
+### DTO
+
+`AccidenteDto` representa una fila del CSV antes de realizar las conversiones. Sus propiedades son cadenas de texto porque los datos procedentes del fichero todavía no están tipados.
+
+El flujo de transformación es:
+
+```text
+CSV -> AccidenteDto -> Accidente
+```
+
+### Mapper
+
+`AccidenteMapper` transforma un `AccidenteDto` en un objeto `Accidente`.
+
+Durante este proceso se realizan las siguientes operaciones:
+
+- Conversión de fechas.
+- Conversión de horas.
+- Conversión de valores numéricos.
+- Conversión de textos a enumerados.
+- Conversión de valores como `S`, `N`, `SI` o `NO` a booleanos.
+- Normalización de valores desconocidos.
+- Validación de rangos de edad.
+- Conversión de códigos de lesividad a gravedad.
+
+### Repositorio
+
+`AccidentesRepository` almacena los accidentes en una lista en memoria.
+
+Sus operaciones principales son:
+
+- Obtener todos los accidentes.
+- Añadir varios accidentes.
+
+La interfaz del repositorio permite sustituirlo en el futuro por otra implementación, como una base de datos o un almacenamiento persistente.
+
+### Servicios de ficheros
+
+`AccidentesFileService` coordina:
+
+- La importación de los CSV.
+- El almacenamiento en el repositorio.
+- La exportación de los datos.
+- La obtención de todos los accidentes cargados.
+
+### Analizadores
+
+El proyecto contiene dos analizadores:
+
+- `AccidentesLinqAnalyzer`
+- `AccidentesDataFrameAnalyzer`
+
+Ambos intentan realizar las mismas consultas, pero utilizando estructuras de datos diferentes.
+
+---
+
+## Formato y ubicación de los datos
+
+La aplicación espera encontrar los ficheros CSV en:
+
+```text
+Data/Accidentes/
+```
+
+Los nombres esperados son:
+
+```text
+2024-accidentes-trafico-detalle.csv
+2025-accidentes-trafico-detalle-csv.csv
+2026-accidentes-trafico-detalle-csv.csv
+```
+
+El fichero combinado utilizado para el análisis con `DataFrame` es:
+
+```text
+Todos-accidentes-trafico-detalle-csv.csv
+```
+
+Este fichero se genera automáticamente cuando no existe.
+
+La aplicación obtiene las rutas mediante `Config/Config.cs`:
+
+```csharp
+public static readonly string AccidentesFolder =
+    Path.Combine(CsvsFolder, "Accidentes");
+```
+
+La carpeta `Data` aparece excluida de Git mediante `.gitignore`:
+
+```gitignore
+/Data/
+```
+
+Por tanto, los datos deben estar disponibles localmente antes de ejecutar el programa.
+
+---
+
+## Instrucciones de uso
+
+### Requisitos
+
+Para ejecutar el proyecto directamente se necesita:
+
+- .NET 10 SDK.
+- Los ficheros CSV en la ubicación esperada.
+- Una terminal compatible.
+
+Para comprobar la versión de .NET instalada:
+
+```bash
+dotnet --version
+```
+
+### Restaurar dependencias
+
+Desde la raíz del proyecto:
+
+```bash
+dotnet restore
+```
+
+### Compilar
+
+```bash
+dotnet build
+```
+
+Para compilar en modo Release:
+
+```bash
+dotnet build --configuration Release
+```
+
+### Ejecutar
+
+```bash
+dotnet run
+```
+
+También se puede ejecutar en modo Release:
+
+```bash
+dotnet run --configuration Release
+```
+
+### Flujo de ejecución
+
+El programa realiza las siguientes operaciones:
+
+1. Crea el lector CSV.
+2. Crea el escritor CSV.
+3. Crea el repositorio en memoria.
+4. Importa los ficheros de 2024, 2025 y 2026.
+5. Convierte cada fila a un objeto `Accidente`.
+6. Ejecuta las 30 consultas con LINQ.
+7. Mide el tiempo de ejecución de LINQ.
+8. Genera el CSV combinado si no existe.
+9. Carga el CSV combinado en un `DataFrame`.
+10. Ejecuta las 30 consultas con `DataFrame`.
+11. Mide el tiempo de ejecución de `DataFrame`.
+12. Muestra los resultados en la consola.
+
+---
+
+## Ejecución con Docker
+
+El proyecto incluye un `Dockerfile` multi-stage para compilar y ejecutar la aplicación dentro de un contenedor.
+
+### Requisitos
+
+Es necesario instalar y tener iniciado:
+
+- Docker Desktop en Windows o macOS.
+- Docker Engine en Linux.
+
+El daemon de Docker debe estar funcionando antes de ejecutar cualquier comando de construcción o ejecución.
+
+Se puede comprobar con:
+
+```bash
+docker info
+```
+
+Si este comando devuelve información del servidor Docker, el motor está disponible.
+
+### Dockerfile
+
+El `Dockerfile` utiliza dos imágenes diferentes:
+
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+```
+
+para restaurar dependencias, compilar y publicar el proyecto, y:
+
+```dockerfile
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+```
+
+para ejecutar la aplicación final.
+
+Esta separación permite que la imagen final no incluya todas las herramientas del SDK y sea más ligera que una imagen utilizada también para compilar.
+
+### Construir la imagen
+
+Desde la raíz del proyecto, donde se encuentran `Dockerfile` y `AccidentesMadrid.csproj`, ejecutar:
+
+```bash
+docker build -t accidentes-madrid .
+```
+
+El nombre `accidentes-madrid` es una etiqueta local para la imagen y puede cambiarse si se desea.
+
+Para forzar una compilación sin utilizar la caché:
+
+```bash
+docker build --no-cache -t accidentes-madrid .
+```
+
+### Ejecutar el contenedor
+
+Una vez construida la imagen:
+
+```bash
+docker run --rm accidentes-madrid
+```
+
+La opción `--rm` elimina automáticamente el contenedor cuando finaliza la ejecución.
+
+### Ejecutar montando la carpeta de datos
+
+Como la carpeta `Data` puede no estar incluida en el repositorio, se recomienda montarla explícitamente en el contenedor.
+
+#### PowerShell en Windows
+
+```powershell
+docker run --rm `
+  -v "${PWD}/Data:/app/Data" `
+  accidentes-madrid
+```
+
+#### Linux y macOS
+
+```bash
+docker run --rm \
+  -v "$(pwd)/Data:/app/Data" \
+  accidentes-madrid
+```
+
+Este montaje conecta la carpeta local:
+
+```text
+Data/
+```
+
+con la carpeta del contenedor:
+
+```text
+/app/Data/
+```
+
+La aplicación buscará los CSV en:
+
+```text
+/app/Data/Accidentes/
+```
+
+Por tanto, en el equipo local deben existir:
+
+```text
+Data/Accidentes/2024-accidentes-trafico-detalle.csv
+Data/Accidentes/2025-accidentes-trafico-detalle-csv.csv
+Data/Accidentes/2026-accidentes-trafico-detalle-csv.csv
+```
+
+### Ejecutar en segundo plano
+
+Si se desea ejecutar el contenedor en segundo plano:
+
+```bash
+docker run -d --name accidentes-madrid-container accidentes-madrid
+```
+
+Para ver la salida de la aplicación:
+
+```bash
+docker logs -f accidentes-madrid-container
+```
+
+Para detener el contenedor:
+
+```bash
+docker stop accidentes-madrid-container
+```
+
+Para eliminarlo posteriormente:
+
+```bash
+docker rm accidentes-madrid-container
+```
+
+### Descargar las imágenes manualmente
+
+Si la construcción falla al descargar las imágenes de .NET, se pueden descargar previamente:
+
+```bash
+docker pull mcr.microsoft.com/dotnet/runtime:10.0
+docker pull mcr.microsoft.com/dotnet/sdk:10.0
+```
+
+Después se puede repetir la construcción:
+
+```bash
+docker build -t accidentes-madrid .
+```
+
+---
+
+## Solución de problemas con Docker
+
+### Error de conexión con el daemon
+
+Si aparece un mensaje similar a:
+
+```text
+Cannot connect to the Docker daemon
+```
+
+significa que Docker Desktop o Docker Engine no está iniciado.
+
+En Windows o macOS:
+
+1. Abrir Docker Desktop.
+2. Esperar a que termine de iniciarse.
+3. Ejecutar:
+
+```bash
+docker info
+```
+
+En Linux:
+
+```bash
+sudo systemctl start docker
+docker info
+```
+
+### Error `TLS handshake timeout`
+
+Si aparece un error como:
+
+```text
+TLS handshake timeout
+```
+
+o:
+
+```text
+failed to resolve source metadata
+```
+
+el problema suele estar relacionado con la conexión entre Docker y Microsoft Container Registry, no con el código C# ni con el `Dockerfile`.
+
+Se puede probar:
+
+```bash
+docker pull mcr.microsoft.com/dotnet/runtime:10.0
+```
+
+Las causas habituales son:
+
+- Problemas de conexión a Internet.
+- Proxy no configurado.
+- VPN activa.
+- Firewall.
+- DNS incorrecto.
+- Red corporativa o educativa que bloquea el registro.
+- Problemas temporales de conectividad.
+
+En Docker Desktop se debe revisar la configuración de proxy en:
+
+```text
+Settings → Resources → Proxies
+```
+
+También se puede probar temporalmente otra red, por ejemplo una conexión compartida desde un teléfono móvil.
+
+### Error `Archivo no encontrado`
+
+Si la aplicación muestra:
+
+```text
+Archivo no encontrado
+```
+
+hay que comprobar:
+
+1. Que existe la carpeta local `Data/Accidentes`.
+2. Que los CSV tienen los nombres correctos.
+3. Que el volumen se ha montado correctamente.
+4. Que se está ejecutando el comando desde la raíz del proyecto.
+
+Se puede comprobar el contenido de la carpeta local con:
+
+```bash
+ls Data/Accidentes
+```
+
+En PowerShell:
+
+```powershell
+Get-ChildItem Data/Accidentes
+```
+
+### Error relacionado con el proyecto
+
+El nombre correcto del proyecto es:
+
+```text
+AccidentesMadrid.csproj
+```
+
+El ensamblado final es:
+
+```text
+AccidentesMadrid.dll
+```
+
+El `Dockerfile` debe utilizar exactamente esos nombres:
+
+```dockerfile
+COPY ["AccidentesMadrid.csproj", "./"]
+```
+
+y:
+
+```dockerfile
+ENTRYPOINT ["dotnet", "AccidentesMadrid.dll"]
+```
+
+---
+
+## Justificación del diseño
+
+### Separación de responsabilidades
+
+El proyecto separa:
+
+- Lectura de ficheros.
+- Transformación de datos.
+- Almacenamiento.
+- Lógica de análisis.
+- Escritura de resultados.
+
+Esto facilita el mantenimiento y permite cambiar una parte sin afectar directamente al resto.
+
+### Uso de DTO
+
+El DTO representa el formato externo de los datos y evita acoplar el lector CSV directamente al modelo de dominio.
+
+### Uso de `record`
+
+`Accidente` se define como `record` porque representa información y no una entidad con comportamiento complejo.
+
+Además, los `record` proporcionan comparación por valor y una sintaxis compacta.
+
+### Uso de enumerados
+
+Los enumerados evitan depender de cadenas arbitrarias para valores controlados como:
+
+- Sexo.
+- Tipo de persona.
+- Gravedad.
+- Tipo de accidente.
+
+### Normalización
+
+El mapper normaliza los datos antes de almacenarlos:
+
+- Elimina espacios innecesarios.
+- Convierte números.
+- Interpreta booleanos.
+- Normaliza categorías.
+- Gestiona datos desconocidos.
+
+### Procesamiento por lotes
+
+La importación utiliza lotes de 1.000 elementos:
+
+```csharp
+Task Import(IEnumerable<string> paths, int batchSize = 1000)
+```
+
+Esto reduce el número de operaciones de inserción en el repositorio y permite adaptar el código a un almacenamiento persistente en el futuro.
+
+### Uso de `IAsyncEnumerable`
+
+El lector utiliza `File.ReadLinesAsync`, lo que permite procesar progresivamente las líneas del fichero sin cargar inicialmente todo el archivo como una única cadena.
+
+### Comparación entre LINQ y DataFrame
+
+Se implementan dos analizadores para comparar:
+
+- Una colección de objetos tipados.
+- Una estructura tabular.
+
+Sin embargo, para que la comparación sea completamente válida ambos analizadores deben utilizar:
+
+- La misma definición de accidente.
+- La misma deduplicación.
+- La misma interpretación de fechas y horas.
+- Los mismos filtros.
+- La misma lógica de agrupación.
+
+En la implementación actual existen algunas diferencias que deben tenerse en cuenta al interpretar los resultados.
+
+---
 ## Consultas implementadas
 
 La aplicación ejecuta 30 consultas agrupadas en varias categorías.
@@ -709,115 +1397,6 @@ Más de 74 años: 538
 ```
 
 Este resultado puede indicar una mayor vulnerabilidad de las personas mayores, aunque sería necesario conocer el número total de peatones por rango de edad para calcular tasas y no únicamente frecuencias absolutas.
-
----
-
-## Diferencias entre LINQ y DataFrame
-
-Algunas consultas ofrecen los mismos resultados, pero otras presentan discrepancias importantes.
-
-### Consulta de lesiones más frecuentes
-
-LINQ obtiene:
-
-```text
-ColisionDoble: 65.208
-```
-
-DataFrame obtiene:
-
-```text
-OtrasCausas: 101.919
-```
-
-La causa principal está en la implementación:
-
-```csharp
-DataFrame agrupado = accidentes
-    .GroupBy(Config.Config.Lesividad)
-    .Count();
-```
-
-La consulta agrupa por la columna `Lesividad`, pero después intenta convertir el resultado a `TipoAccidente`.
-
-Esto no es semánticamente correcto. Si la consulta pretende calcular el tipo de accidente más frecuente, debería agrupar por:
-
-```csharp
-Config.Config.TipoAccidente
-```
-
-Si pretende calcular la gravedad o lesividad más frecuente, debería devolver un tipo compatible con esa información.
-
-### Hora punta por año
-
-LINQ devuelve:
-
-```text
-2024: 00:00
-2025: 00:00
-2026: 00:00
-```
-
-Sin embargo, DataFrame devuelve:
-
-```text
-2024: 18:00
-2025: 14:00
-2026: 18:00
-```
-
-El resultado de LINQ parece sospechoso porque todos los años obtienen exactamente 00:00 con cantidades iguales al total anual.
-
-Esto puede indicar que `Accidente.Hora` no está utilizando correctamente el campo de hora o que se está utilizando la fecha de forma incorrecta en alguna parte del análisis.
-
-Por otro lado, DataFrame obtiene la hora desde la columna de hora, mientras que LINQ utiliza:
-
-```csharp
-a.Hora.Hours
-```
-
-y DataFrame utiliza:
-
-```csharp
-colHora[i]
-```
-
-Ambas implementaciones deberían revisarse y validarse contra varios registros reales.
-
-### Comparativa anual entre laborables y fines de semana
-
-LINQ obtiene cantidades anuales que suman el número de accidentes únicos:
-
-```text
-2024: 20.698
-2025: 21.688
-2026: 13.144
-```
-
-DataFrame devuelve cantidades mucho mayores:
-
-```text
-2024: 49.340
-2025: 51.067
-2026: 30.457
-```
-
-Esto demuestra que no se están contando las mismas unidades.
-
-La causa más probable es que DataFrame agrupa filas de personas implicadas, mientras LINQ aplica `DistinctBy(a => a.NumExpediente)` en algunas consultas.
-
-### Diferencias de orden
-
-Algunos resultados tienen exactamente los mismos valores pero aparecen en distinto orden.
-
-Por ejemplo, los tipos de accidente o los rangos de edad pueden aparecer ordenados por:
-
-- Frecuencia descendente.
-- Orden de aparición.
-- Orden alfabético.
-- Orden interno de la operación `GroupBy`.
-
-Estas diferencias de orden no necesariamente indican un error, siempre que los valores sean iguales.
 
 ---
 
