@@ -3,7 +3,7 @@ using AccidentesMadrid.Services.Analyzers.Accidentes.Common;
 
 namespace AccidentesMadrid.Services.Analyzers.Accidentes;
 
-public class AccidentesLinqAnalyzer()
+public class AccidentesLinqAnalyzer() : IAccidentesAnalyzer
 {
     // Total de accidentes
     public int TotalAccidentes(IEnumerable<Accidente> accidentes)
