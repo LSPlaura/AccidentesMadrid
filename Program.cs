@@ -189,10 +189,10 @@ class Program
         var dfReader = new DataFrameReader();
         var dfAnalyzer = new AccidentesDataFrameAnalyzer();
         var writerAccidentes = new AccidentesWriter();
-        // if (!File.Exists(Config.Config.CsvTodosPath))
-        // {
-        //  //   if (!await writerAccidentes.Load(accidentesLinq, Config.Config.CsvTodosPath)) return;
-        // }
+        if (!File.Exists(Config.Config.CsvTodosPath))
+        {
+         if (!await writerAccidentes.Load(accidentesLinq, Config.Config.CsvTodosPath)) return;
+        }
         
          DataFrame dataframe = dfReader.LoadDataFrame(Config.Config.CsvTodosPath);
               // 1. TotalAccidentes
